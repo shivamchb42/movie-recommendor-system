@@ -42,10 +42,14 @@ similarity = pickle.load(open('model\similarity.pkl','rb'))
 movie_list = movies['title'].values
 selected_movie = st.selectbox( "Type or select a movie from the dropdown", movie_list)
 
-movt = st.experimental_get_query_params().get("mov", [selected_movie])[0]
 if st.button('Search'):
-    st.experimental_set_query_params(mov=selected_movie)
-    recommended_movie_names,recommended_movie_posters = recommend(selected_movie)
+    movt = st.experimental_get_query_params().get("mov")
+    if movt is None:
+        movt = selected_movie
+    else:
+        movt = movt[0]
+    st.experimental_set_query_params(mov=movt)
+    recommended_movie_names,recommended_movie_posters = recommend(movt)
     tdf = movies[movies['title'] == selected_movie].reset_index()
     st.image(fetch_poster(tdf.loc[0, 'movie_id']))
     st.text("Title: "+tdf.loc[0, 'title'])
@@ -56,19 +60,33 @@ if st.button('Search'):
     st.text('Similar Movies')
     col1, col2, col3, col4, col5 = st.columns(5)
     # Iterate through recommended movies
-    for i in range(5):
-        with col1 if i % 5 == 0 else col2 if i % 5 == 1 else col3 if i % 5 == 2 else col4 if i % 5 == 3 else col5:
-            st.image(recommended_movie_posters[i])
-            if st.button(recommended_movie_names[i]):
-                # Perform a search or action when the button is clicked
-                movt = recommended_movie_names[i]
-                st.write(f'<script>window.location.href="?mov={movt}";</script>', unsafe_allow_html=True)
+    with col1:
+        st.image(recommended_movie_posters[0])
+        if(st.button(recommended_movie_names[0], key="movie0")):
+            movt = recommended_movie_names[0]
+    with col2:
+        st.image(recommended_movie_posters[1])
+        if(st.button(recommended_movie_names[1], key="movie1")):
+            movt = recommended_movie_names[1]
+    with col3:
+        st.image(recommended_movie_posters[2])
+        if(st.button(recommended_movie_names[2], key="movie2")):
+            movt = recommended_movie_names[2]
+    with col4:
+        st.image(recommended_movie_posters[3])
+        if(st.button(recommended_movie_names[3], key="movie3")):
+            movt = recommended_movie_names[3]
+    with col5:
+        st.image(recommended_movie_posters[4])
+        if(st.button(recommended_movie_names[4], key="movie4")):
+            movt = recommended_movie_names[4]
+
                 
 
 else:
     # Number of images per page
-    images_per_page = 20
-    images_per_row = 5
+    images_per_page = 16
+    images_per_row = 4
     images_per_column = 4
     movie_ids = movies['movie_id'].values
 
@@ -92,7 +110,7 @@ else:
 
     # Create a grid of images
     for i in range(images_per_column):
-        col1, col2, col3, col4, col5 = st.columns(5)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.image(current_page_images[i * images_per_row])
         with col2:
@@ -101,8 +119,6 @@ else:
             st.image(current_page_images[i * images_per_row +2])
         with col4:
             st.image(current_page_images[i * images_per_row +3])
-        with col5:
-            st.image(current_page_images[i * images_per_row +4])
 
     # Create pagination controls
     if len(movie_ids) > images_per_page:
